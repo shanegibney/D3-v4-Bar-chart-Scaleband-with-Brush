@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style type="text/css">
+  body {
+    font-family: avenir next, sans-serif;
+    font-size: 12px;
+  }
+
+  .zoom {
+    cursor: move;
+    fill: none;
+    pointer-events: all;
+  }
+
+  .axis {
+    stroke-width: 0.5px;
+    stroke: #888;
+    font: 10px avenir next, sans-serif;
+  }
+
+  .axis>path {
+    stroke: #888;
+  }
+</style>
+
+<body>
+</body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+  /* Adapted from: https://bl.ocks.org/mbostock/34f08d5e11952a80609169b7917d4172 */
+
+  var margin = {
+      top: 20,
+      right: 20,
+      bottom: 90,
+      left: 50
+    },
+    margin2 = {
+      top: 230,
+      right: 20,
+      bottom: 30,
+      left: 50
+    },
+    width = 960 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom,
+    height2 = 300 - margin2.top - margin2.bottom;
+
+  var x = d3.scaleBand().range([0, width]).padding(0.1),
+    x2 = d3.scaleBand().range([0, width]).padding(0.1),
+    y = d3.scaleLinear().range([height, 0]),
+    y2 = d3.scaleLinear().range([height2, 0]);
+
+  var xAxis = d3.axisBottom(x).tickSize(0),
+    xAxis2 = d3.axisBottom(x2).tickSize(0),
+    yAxis = d3.axisLeft(y).tickSize(0);
+
+  var brush = d3.brushX()
+    .extent([
+      [0, 0],
+      [width, height2]
+    ])
+    // .on("start brush end", brushed);
+    .on("brush", brushed);
+
+  var zoom = d3.zoom()
+    .scaleExtent([1, 2])
+    .translateExtent([
+      [0, 0],
+      [width, height]
+    ])
+    .extent([
+      [0, 0],
+      [width, height]
+    ])
+    .on("zoom", zoomed);
+
+  var svg = d3.select("body")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+
+  svg.append("defs").append("clipPath")
+    .attr("id", "clip")
+    .append("rect")
+    .attr("width", width)
+    .attr("height", height);
+
+  var focus = svg.append("g")
+    .attr("class", "focus")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var context = svg.append("g")
+    .attr("class", "context")
+    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+  focus.append("text") // yAxis label
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Distance in meters");
+
+  svg.append("text") // xAxis label
+    .attr("transform",
+      "translate(" + ((width + margin.right + margin.left) / 2) + " ," +
+      (height + margin.top + margin.bottom) + ")")
+    .style("text-anchor", "middle")
+    .text("Date");
+
+  svg.append("rect")
+    .attr("class", "zoom")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .call(zoom); //see var zoom above
+
+  focus.append("g") //append xAxis to main chart
+    .attr("class", "axis x-axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  // d3.json("data.json", function(error, data) {
+  //   if (error) throw error;
+
+  var data = [{
+      "date": "A",
+      "distance": 1100
+    },
+    {
+      "date": "B",
+      "distance": 1500
+    },
+
+    {
+      "date": "C",
+      "distance": 2000
+    },
+    {
+      "date": "D",
+      "distance": 2500
+    },
+    {
+      "date": "E",
+      "distance": 1975
+    },
+    {
+      "date": "F",
+      "distance": 3000
+    },
+    {
+      "date": "G",
+      "distance": 2100
+    },
+    {
+      "date": "H",
+      "distance": 2100
+    },
+    {
+      "date": "I",
+      "distance": 3300
+    },
+    {
+      "date": "J",
+      "distance": 2000
+    },
+    {
+      "date": "K",
+      "distance": 2100
+    },
+    {
+      "date": "L",
+      "distance": 2000
+    },
+    {
+      "date": "M",
+      "distance": 2000
+    },
+    {
+      "date": "N",
+      "distance": 2000
+    },
+    {
+      "date": "O",
+      "distance": 3000
+    },
+    {
+      "date": "p",
+      "distance": 1975
+    },
+    {
+      "date": "Q",
+      "distance": 3000
+    },
+    {
+      "date": "R",
+      "distance": 2100
+    },
+    {
+      "date": "S",
+      "distance": 2100
+    },
+    {
+      "date": "T",
+      "distance": 3300
+    },
+    {
+      "date": "U",
+      "distance": 1500
+    },
+    {
+      "date": "V",
+      "distance": 2100
+    },
+    {
+      "date": "W",
+      "distance": 2000
+    },
+    {
+      "date": "X",
+      "distance": 1800
+    },
+    {
+      "date": "Y",
+      "distance": 2200
+    },
+    {
+      "date": "Z",
+      "distance": 3000
+    }
+  ]
+
+  focus.append("g")
+    .attr("class", "axis axis--y")
+    .call(d3.axisLeft(d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) {
+        return d.distance;
+      })])
+      .range([height, 0])).tickSize(0));
+
+  data.forEach(function(d) {
+      d.distance = +d.distance;
+      console.log("d.distance = " + d.distance);
+      return d;
+    },
+    function(error, data) {
+      if (error) throw error;
+    });
+
+  x.domain(data.map(function(d) {
+    return d.date;
+  }));
+  y.domain([0, d3.max(data, function(d) {
+    return d.distance;
+  })]);
+  x2.domain(x.domain());
+  y2.domain(y.domain());
+
+  //********* Main ar Chart ****************
+
+  var rects = focus.append("g");
+  rects.attr("clip-path", "url(#clip)"); //the element to be clipped
+  rects.selectAll("rects")
+    .data(data)
+    .enter().append("rect")
+    .style("fill", function(d) {
+      return "lightblue";
+    })
+    .style('stroke', 'gray')
+    .attr("class", "rects")
+    .attr("x", function(d) {
+      return x(d.date);
+    })
+    .attr("y", function(d) {
+      return y(d.distance);
+    })
+    .attr("width", x.bandwidth())
+    .attr("height", function(d) {
+      return height - y(d.distance);
+    });
+
+  // //********* Brush Bar Chart ****************
+
+  var rects = context.append("g"); //draw bar chart in brush
+  rects.attr("clip-path", "url(#clip)");
+  rects.selectAll("rect")
+    .data(data)
+    .enter().append("rect")
+
+    // var focus_group = context.append("g");
+    // focus_group.attr("clip-path", "url(#clip)");
+    //
+    // var brushRects = focus_group.selectAll('rect')
+    //   .data(data);
+    //
+    // //********* Brush Bar Chart ****************
+    //
+    // var brushRects1 = brushRects.enter();
+    //
+    // brushRects1.append('rect')
+
+    .style("fill", function(d) {
+      return "lightblue";
+    })
+    .style('stroke', 'gray')
+    .attr("class", "rectss")
+    .attr("x", function(d) {
+      return x2(d.date);
+    })
+    .attr("y", function(d) {
+      return y2(d.distance);
+    })
+    .attr("width", x.bandwidth())
+    .attr("height", function(d) {
+      return height2 - y2(d.distance);
+    });
+
+  context.append("g")
+    .attr("class", "axis x-axis")
+    .attr("transform", "translate(0," + height2 + ")")
+    .call(xAxis2);
+
+  context.append("g")
+    .attr("class", "brush")
+    .call(brush)
+    .call(brush.move, x.range());
+
+  //create brush function redraw scatterplot with selection
+  function brushed() {
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+
+    // get bounds of selection
+    var s = d3.event.selection,
+      nD = [];
+    x2.domain().forEach((d) => { //not as smooth as I'd like it
+      var pos = x2(d) + x2.bandwidth() / 2;
+      if (pos > s[0] && pos < s[1]) {
+        nD.push(d);
+      }
+    });
+
+    x.domain(nD);
+
+    // d3.select("rects").remove();
+
+    focus.selectAll(".rects")
+      .remove().exit()
+      .data(data.filter(function(d) {
+        return nD.indexOf(d.date) > -1
+      }))
+      .enter().append("rect")
+      .style("fill", function(d) {
+        return "lightblue";
+      })
+      .style('stroke', 'gray')
+      .attr("class", "rects")
+      .attr("x", function(d) {
+        return x(d.date);
+      })
+      .attr("y", function(d) {
+        return y(d.distance);
+      })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) {
+        return height - y(d.distance);
+      });
+
+    focus.select(".x-axis").call(xAxis);
+
+    // var e = d3.event.selection;
+    // var selectedrects = focus.selectAll('.rects').filter(function() {
+    //   var xValue = this.getAttribute('x');
+    //   return e[0] <= xValue && xValue <= e[1];
+    // });
+
+    svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
+      .scale(width / (s[1] - s[0]))
+      .translate(-s[0], 0));
+  }
+
+  function zoomed() {}
+</script>
