@@ -29,8 +29,6 @@
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-  /* Adapted from: https://bl.ocks.org/mbostock/34f08d5e11952a80609169b7917d4172 */
-
   var margin = {
       top: 20,
       right: 20,
@@ -122,212 +120,96 @@
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
 
-  // d3.json("data.json", function(error, data) {
-  //   if (error) throw error;
+  var data = null;
 
-  var data = [{
-      "date": "A",
-      "distance": 1100
-    },
-    {
-      "date": "B",
-      "distance": 1500
-    },
+  d3.json("data.json", function(error, newdata) {
+    if (error) throw error;
 
-    {
-      "date": "C",
-      "distance": 2000
-    },
-    {
-      "date": "D",
-      "distance": 2500
-    },
-    {
-      "date": "E",
-      "distance": 1975
-    },
-    {
-      "date": "F",
-      "distance": 3000
-    },
-    {
-      "date": "G",
-      "distance": 2100
-    },
-    {
-      "date": "H",
-      "distance": 2100
-    },
-    {
-      "date": "I",
-      "distance": 3300
-    },
-    {
-      "date": "J",
-      "distance": 2000
-    },
-    {
-      "date": "K",
-      "distance": 2100
-    },
-    {
-      "date": "L",
-      "distance": 2000
-    },
-    {
-      "date": "M",
-      "distance": 2000
-    },
-    {
-      "date": "N",
-      "distance": 2000
-    },
-    {
-      "date": "O",
-      "distance": 3000
-    },
-    {
-      "date": "p",
-      "distance": 1975
-    },
-    {
-      "date": "Q",
-      "distance": 3000
-    },
-    {
-      "date": "R",
-      "distance": 2100
-    },
-    {
-      "date": "S",
-      "distance": 2100
-    },
-    {
-      "date": "T",
-      "distance": 3300
-    },
-    {
-      "date": "U",
-      "distance": 1500
-    },
-    {
-      "date": "V",
-      "distance": 2100
-    },
-    {
-      "date": "W",
-      "distance": 2000
-    },
-    {
-      "date": "X",
-      "distance": 1800
-    },
-    {
-      "date": "Y",
-      "distance": 2200
-    },
-    {
-      "date": "Z",
-      "distance": 3000
-    }
-  ]
+    data = newdata;
 
-  focus.append("g")
-    .attr("class", "axis axis--y")
-    .call(d3.axisLeft(d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) {
-        return d.distance;
-      })])
-      .range([height, 0])).tickSize(0));
+    focus.append("g")
+      .attr("class", "axis axis--y")
+      .call(d3.axisLeft(d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) {
+          return d.distance;
+        })])
+        .range([height, 0])).tickSize(0));
 
-  data.forEach(function(d) {
-      d.distance = +d.distance;
-      console.log("d.distance = " + d.distance);
-      return d;
-    },
-    function(error, data) {
-      if (error) throw error;
-    });
+    data.forEach(function(d) {
+        d.distance = +d.distance;
+        return d;
+      },
+      function(error, data) {
+        if (error) throw error;
+      });
 
-  x.domain(data.map(function(d) {
-    return d.date;
-  }));
-  y.domain([0, d3.max(data, function(d) {
-    return d.distance;
-  })]);
-  x2.domain(x.domain());
-  y2.domain(y.domain());
+    x.domain(data.map(function(d) {
+      return d.date;
+    }));
+    y.domain([0, d3.max(data, function(d) {
+      return d.distance;
+    })]);
+    x2.domain(x.domain());
+    y2.domain(y.domain());
 
-  //********* Main ar Chart ****************
+    //********* Main ar Chart ****************
 
-  var rects = focus.append("g");
-  rects.attr("clip-path", "url(#clip)"); //the element to be clipped
-  rects.selectAll("rects")
-    .data(data)
-    .enter().append("rect")
-    .style("fill", function(d) {
-      return "lightblue";
-    })
-    .style('stroke', 'gray')
-    .attr("class", "rects")
-    .attr("x", function(d) {
-      return x(d.date);
-    })
-    .attr("y", function(d) {
-      return y(d.distance);
-    })
-    .attr("width", x.bandwidth())
-    .attr("height", function(d) {
-      return height - y(d.distance);
-    });
+    var rects = focus.append("g");
+    rects.attr("clip-path", "url(#clip)");
+    rects.selectAll("rects")
+      .data(data)
+      .enter().append("rect")
+      .style("fill", function(d) {
+        return "lightblue";
+      })
+      .style('stroke', 'gray')
+      .attr("class", "rects")
+      .attr("x", function(d) {
+        return x(d.date);
+      })
+      .attr("y", function(d) {
+        return y(d.distance);
+      })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) {
+        return height - y(d.distance);
+      });
 
-  // //********* Brush Bar Chart ****************
-
-  var rects = context.append("g"); //draw bar chart in brush
-  rects.attr("clip-path", "url(#clip)");
-  rects.selectAll("rect")
-    .data(data)
-    .enter().append("rect")
-
-    // var focus_group = context.append("g");
-    // focus_group.attr("clip-path", "url(#clip)");
-    //
-    // var brushRects = focus_group.selectAll('rect')
-    //   .data(data);
-    //
     // //********* Brush Bar Chart ****************
-    //
-    // var brushRects1 = brushRects.enter();
-    //
-    // brushRects1.append('rect')
 
-    .style("fill", function(d) {
-      return "lightblue";
-    })
-    .style('stroke', 'gray')
-    .attr("class", "rectss")
-    .attr("x", function(d) {
-      return x2(d.date);
-    })
-    .attr("y", function(d) {
-      return y2(d.distance);
-    })
-    .attr("width", x.bandwidth())
-    .attr("height", function(d) {
-      return height2 - y2(d.distance);
-    });
+    var rects = context.append("g"); //draw bar chart in brush
+    rects.attr("clip-path", "url(#clip)");
+    rects.selectAll("rect")
+      .data(data)
+      .enter().append("rect")
+      .style("fill", function(d) {
+        return "lightblue";
+      })
+      .style('stroke', 'gray')
+      .attr("class", "rectss")
+      .attr("x", function(d) {
+        return x2(d.date);
+      })
+      .attr("y", function(d) {
+        return y2(d.distance);
+      })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) {
+        return height2 - y2(d.distance);
+      });
 
-  context.append("g")
-    .attr("class", "axis x-axis")
-    .attr("transform", "translate(0," + height2 + ")")
-    .call(xAxis2);
+    context.append("g")
+      .attr("class", "axis x-axis")
+      .attr("transform", "translate(0," + height2 + ")")
+      .call(xAxis2);
 
-  context.append("g")
-    .attr("class", "brush")
-    .call(brush)
-    .call(brush.move, x.range());
+    context.append("g")
+      .attr("class", "brush")
+      .call(brush)
+      .call(brush.move, x.range());
 
-  //create brush function redraw scatterplot with selection
+  }); //closes d3.json()
+
   function brushed() {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
 
@@ -342,8 +224,6 @@
     });
 
     x.domain(nD);
-
-    // d3.select("rects").remove();
 
     focus.selectAll(".rects")
       .remove().exit()
@@ -369,16 +249,10 @@
 
     focus.select(".x-axis").call(xAxis);
 
-    // var e = d3.event.selection;
-    // var selectedrects = focus.selectAll('.rects').filter(function() {
-    //   var xValue = this.getAttribute('x');
-    //   return e[0] <= xValue && xValue <= e[1];
-    // });
-
     svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
       .scale(width / (s[1] - s[0]))
       .translate(-s[0], 0));
-  }
+  };
 
-  function zoomed() {}
+  function zoomed() {};
 </script>
